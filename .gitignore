@@ -1,0 +1,7 @@
+*.iso
+*.md5
+*.tar.gz
+source-files/
+offline-packages/
+autoinstall-vars.conf*
+!autoinstall-vars.conf.template

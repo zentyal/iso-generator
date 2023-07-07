@@ -1,0 +1,45 @@
+#cloud-config
+autoinstall:
+  version: 1
+
+  interactive-sections:
+    - keyboard
+    - locale
+    - network
+    - storage
+    - identity
+
+  refresh-installer:
+    update: false
+
+  updates: all
+
+  apt:
+    preserve_sources_list: false
+    fallback: abort
+    geoip: true
+    mirror-selection:
+      primary:
+        - country-mirror
+        - arches: [i386, amd64]
+          uri: "http://archive.ubuntu.com/ubuntu"
+
+  ssh:
+    allow-pw: true
+    authorized-keys: []
+    install-server: true
+
+  late-commands:
+    - mkdir /target/var/zentyal-init/ /target/var/tmp/zentyal-packages/
+    - cp /cdrom/zentyal-init/* /target/var/zentyal-init/
+    - tar xfz /cdrom/zentyal-init/zentyal-packages-offline.tar.gz -C /target/var/tmp/zentyal-packages/
+    - sed -i 's/#GRUB_HIDDEN_TIMEOUT=0/GRUB_HIDDEN_TIMEOUT=0/' /target/etc/default/grub
+    - sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT=".*\)"/\1 net.ifnames=0 biosdevname=0"/' /target/etc/default/grub
+    - curtin in-target --target=/target -- update-grub
+    - touch /run/casper-no-prompt
+    - /sbin/reboot
+
+  user-data:
+    runcmd:
+      - 'bash /var/zentyal-init/zentyal-repositories.sh'
+      - 'bash /var/zentyal-init/zentyal-install.sh N'

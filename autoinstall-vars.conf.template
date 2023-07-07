@@ -1,0 +1,67 @@
+# Configuration for the ISO generation of Zentyal
+
+# General
+GEN_DEBUG='false'
+BASE_DIR='/home/zentyal/iso-generator'
+ISO_BUILD_DIR="${BASE_DIR}/source-files"
+
+# Ubuntu
+UBUNTU_ISO_NAME='ubuntu-20.04.6-live-server-amd64.iso'   ## You can get the name from here: https://releases.ubuntu.com/focal/
+UBUNTU_ISO_PATH="${BASE_DIR}/${UBUNTU_ISO_NAME}"
+UBUNTU_DIST='focal'
+UBUNTU_VERSION='Ubuntu 20.04'
+
+# Zentyal
+ZEN_VERSION='7.1'
+ZEN_EDITION='development'
+ZEN_ARCH='amd64'
+ISO_NAME="zentyal-${ZEN_VERSION}-${ZEN_EDITION}-${ZEN_ARCH}.iso"
+VOL_NAME="zentyal-${ZEN_VERSION}-${ZEN_EDITION}"
+ZEN_KEY_URL='https://keys.zentyal.org/zentyal-7.1-packages-org.asc'
+ZEN_KEYS_URL='
+https://keys.zentyal.org/zentyal-7.1-packages-org.asc
+https://keys.zentyal.org/zentyal-7.1-packages-com.asc
+'
+ZEN_REPO_URL='packages.zentyal.org/zentyal'
+ZEN_REPO_COMPONENTS='main extra'
+
+# Zentyal commercial
+LK_ID=''
+LK_UUID=''
+
+# IPS (Suricata)
+IPS_KEY_ID='D7F87B2966EB736F'
+IPS_KEY_NAME='suricata.gpg'
+IPS_REPO_URL='http://ppa.launchpad.net/oisf/suricata-stable/ubuntu'
+IPS_REPO_DIST='focal'
+IPS_REPO_COMPONENTS='main'
+
+# Offline installation
+FETCH_OFFLINE_PACKAGES='true'
+PKG_TO_DOWNLOAD='
+    zentyal
+    zentyal-all
+    language-packs-zentyal-all
+    zenbuntu-core
+    zenbuntu-desktop
+    linux-generic
+    linux-headers-generic
+    console-cyrillic
+    xfsprogs
+    xserver-xorg-video-all
+    xserver-xorg-video-intel
+    xserver-xorg-video-qxl
+    gnupg
+    busybox-initramfs
+    initramfs-tools
+    libefiboot1
+    libefivar1
+'
+PKG_TO_DOWNLOAD_COMMERCIAL='
+    zentyal-ipsec
+    zentyal-ebackup
+'
+PKG_FILE_NAME='zentyal-packages-offline.tar.gz'
+CHROOT_PKG_OFFLINE_BASE="${BASE_DIR}/offline-packages"
+CHROOT_PKG_OFFLINE_BUILD_DIR="${CHROOT_PKG_OFFLINE_BASE}/build-system"
+CHROOT_PKG_OFFLINE_RESULT_DIR="${CHROOT_PKG_OFFLINE_BASE}/packages"
