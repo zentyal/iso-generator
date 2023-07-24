@@ -322,4 +322,4 @@ set_scrips_vars
 # 8 - Generate
 iso_generation
 
-echo "The ISO was successfully generated in ${ISO_BUILD_DIR}/${ISO_NAME}"
+echo "The ISO was successfully generated in ${BASE_DIR}/${ISO_NAME}"
