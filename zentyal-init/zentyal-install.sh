@@ -15,6 +15,7 @@ NORM=$(tput sgr0)
 UBUNTU_VER='UBUNTU-VERSION'
 BOOT_SPACE='51200'
 SYSTEM_SPACE='358400'
+INS_USER=$(id -nu 1000)
 
 ##
 # Functions
@@ -165,11 +166,13 @@ function zentyal_gui
 
   echo -e "${GREEN} - Configuring the graphical environment...${NC}\n"
 
-  ## TODO: Old 'first-boot.sh' from zenbuntu-desktop
-  sed -i "s#]'#]#" /usr/share/zenbuntu-desktop/x11-setup
   /usr/share/zenbuntu-desktop/x11-setup >> /var/tmp/zentyal-installer.log 2>&1
   systemctl enable zentyal.lxdm
   systemctl start zentyal.lxdm
+
+  ## If these commands are not executed, the keyboard layout used is EN  in the GUI session is used instead of the selected during the installation until the reboot
+  sleep 15
+  su -c "DISPLAY=:0.0 setxkbmap $(localectl | grep 'Layout' | awk '{print $3}')" ${INS_USER}
 
   echo -e "${GREEN}${BOLD}...OK${NC}${NORM}";echo
 }
