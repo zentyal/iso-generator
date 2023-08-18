@@ -57,10 +57,7 @@ PKG_TO_DOWNLOAD='
     libefiboot1
     libefivar1
 '
-PKG_TO_DOWNLOAD_COMMERCIAL='
-    zentyal-ipsec
-    zentyal-ebackup
-'
+PKG_TO_DOWNLOAD_COMMERCIAL=''
 PKG_FILE_NAME='zentyal-packages-offline.tar.gz'
 CHROOT_PKG_OFFLINE_BASE="${BASE_DIR}/offline-packages"
 CHROOT_PKG_OFFLINE_BUILD_DIR="${CHROOT_PKG_OFFLINE_BASE}/build-system"

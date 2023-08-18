@@ -203,19 +203,11 @@ EOF
          -name '*.deb' \
          -exec mv {} . \;
 
-   ####
-   ## REMOVE
-   # ls -l | egrep 'zentyal-(core|samba|ips)'
-   # rm -f zentyal-core*.deb zentyal-ips*.deb zentyal-samba*.deb
-   # cp -v ${BASE_DIR}/*.deb ${CHROOT_PKG_OFFLINE_RESULT_DIR}/
-   # ls -l | egrep 'zentyal-(core|samba|ips)'
-   ####
-
    # Create the repository index
    dpkg-scanpackages -m . | gzip -c > Packages.gz
 
    # Compress the packages
-   tar cfz ${BASE_DIR}/zentyal-init/${PKG_FILE_NAME} ./
+   tar cfz ${ISO_BUILD_DIR}/zentyal-init/${PKG_FILE_NAME} ./
 
    # Clean the local environment
    if [ ${GEN_DEBUG} != 'true' ]; then
