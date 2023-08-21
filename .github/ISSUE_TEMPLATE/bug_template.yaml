@@ -1,0 +1,79 @@
+name: Bug Report
+description: Create a report to help us improve
+title: "[Bug]: "
+labels: ["bug"]
+assignees:
+  - djoven89
+  - brunolorente
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: dropdown
+    id: version
+    attributes:
+      label: Version
+      description: What version of Zentyal are you running?
+      options:
+        - 7.1
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: Where did you install Zentyal?
+      options:
+        - Physical
+        - Virtual
+        - Cloud
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: installation-type
+    attributes:
+      label: Installation
+      description: What option do you select for the installation?
+      options:
+        - Delete all disk
+        - Expert mode
+        - Export mode with GUI
+      default: 0
+    validations:
+      required: false
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell us, what did you expect to happen?
+      value: "A bug happened!"
+    validations:
+      required: true
+  - type: textarea
+    id: step-to-reproduce
+    attributes:
+      label: Reproduction steps
+      description: How do you trigger this bug? Please walk us through it step by step.
+      value: |
+        1.
+        2.
+        3.
+        ...
+      render: plain text
+    validations:
+      required: true
+  - type: textarea
+    id: custom-iso
+    attributes:
+      label: Custom changes in the ISO
+      description: If you customize the ISO, please tell us what did you do so we can determine if it might cause the issue.
+      render: plain text
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: bash

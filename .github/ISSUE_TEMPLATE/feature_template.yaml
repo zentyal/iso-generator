@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest an idea for this project
+title: "[New feature]: "
+labels: ["enhancement"]
+assignees:
+  - djoven89
+  - brunolorente
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature report!
+  - type: textarea
+    id: new-feature
+    attributes:
+      label: What feature request do you to implement?
+      description: Describe the feature and indicate if it is related to a problem.
+      value: "A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]"
+      render: plain text
+    validations:
+      required: true
+  - type: textarea
+    id: proposal-solution
+    attributes:
+      label: The solution
+      description: Describe the solution you'd like.
+      value: "A clear and concise description of what you want to happen."
+      render: plain text
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Extra information you'd like to add.
+      value: "Add any other context or screenshots about the feature request here."
+      render: plain text
