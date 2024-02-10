@@ -6,3 +6,4 @@ offline-packages/
 autoinstall-vars.conf*
 !autoinstall-vars.conf.template
 zentyal-commercial.sh
+tmp/

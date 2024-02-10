@@ -55,6 +55,17 @@ function set_local_repository() {
 }
 
 
+function add_key() {
+    # This function adds the required repository keys
+
+    echo -e "\n${YELLOW} Running function add_keys...${NC}"
+
+    cp ${ZENTYAL_INIT_DIR}/*.asc /etc/apt/trusted.gpg.d/
+
+    echo -e "${GREEN}...OK${NC}";echo
+}
+
+
 function set_repositories() {
     # This function adds the additional repositories such as Zentyal and Suricata por IPS module
 
@@ -67,22 +78,11 @@ function set_repositories() {
         echo 'deb [signed-by=/etc/apt/trusted.gpg.d/ZEN_KEY_NAME] ZEN_REPO_URL ZEN_REPO_VERSION ZEN_REPO_COMPONENTS' >> /etc/apt/sources.list.d/zentyal.list
     fi
 
-    echo 'deb [signed-by=/etc/apt/trusted.gpg.d/IPS_KEY_NAME] IPS_REPO_URL IPS_REPO_DIST IPS_REPO_COMPONENTS' >> /etc/apt/sources.list.d/ips.list
+    add-apt-repository -y IPS_PPA
 
     echo -e "${GREEN}...OK${NC}";echo
 }
 
-
-function add_keys() {
-    # This function adds the required repository keys
-
-    echo -e "\n${YELLOW} Running function add_keys...${NC}"
-
-    cp ${ZENTYAL_INIT_DIR}/*.asc /etc/apt/trusted.gpg.d/
-    cp ${ZENTYAL_INIT_DIR}/IPS_KEY_NAME /etc/apt/trusted.gpg.d/IPS_KEY_NAME
-
-    echo -e "${GREEN}...OK${NC}";echo
-}
 
 
 ##
@@ -92,7 +92,7 @@ function add_keys() {
 echo -e "${GREEN}Running script ${0} ...${NC}"
 
 set_local_repository
+add_key
 set_repositories
-add_keys
 
 echo -e "${GREEN} Running script ${0} completed.${NC}"

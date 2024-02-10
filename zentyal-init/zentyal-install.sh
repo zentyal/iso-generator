@@ -182,11 +182,7 @@ function zentyal_installation
 {
   echo -e "${GREEN} - Installing Zentyal...${NC}\n"
 
-  apt remove -y netplan.io
-
   DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends zentyal zenbuntu-core
-
-  echo -e "${GREEN}${BOLD}...OK${NC}${NORM}";echo
 
   if [[ -n ${ZEN_GUI} ]]
     then
@@ -195,6 +191,8 @@ function zentyal_installation
 
   touch /var/lib/zentyal/.commercial-edition
   touch /var/lib/zentyal/.license
+
+  echo -e "${GREEN}${BOLD}...OK${NC}${NORM}";echo
 
   echo -e "\n${GREEN}${BOLD}Installation complete, you can access the Zentyal Web Interface at:
 
