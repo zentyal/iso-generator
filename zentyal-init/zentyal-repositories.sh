@@ -55,12 +55,12 @@ function set_local_repository() {
 }
 
 
-function add_key() {
+function add_keys() {
     # This function adds the required repository keys
 
-    echo -e "\n${YELLOW} Running function add_keys...${NC}"
+    echo -e "\n${YELLOW} Running function add_keyss...${NC}"
 
-    cp ${ZENTYAL_INIT_DIR}/*.asc /etc/apt/trusted.gpg.d/
+    cp ${ZENTYAL_INIT_DIR}/*.{asc,gpg} /etc/apt/trusted.gpg.d/
 
     echo -e "${GREEN}...OK${NC}";echo
 }
@@ -79,10 +79,10 @@ function set_repositories() {
     fi
 
     add-apt-repository -y IPS_PPA
+    echo "deb [arch=DOCKER_REPO_ARCH signed-by=/etc/apt/trusted.gpg.d/DOCKER_REPO_KEY_NAME] DOCKER_REPO_URL DOCKER_REPO_DIST DOCKER_REPO_COMPONENTS" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list.d/docker.list
 
     echo -e "${GREEN}...OK${NC}";echo
 }
-
 
 
 ##
@@ -92,7 +92,7 @@ function set_repositories() {
 echo -e "${GREEN}Running script ${0} ...${NC}"
 
 set_local_repository
-add_key
+add_keys
 set_repositories
 
 echo -e "${GREEN} Running script ${0} completed.${NC}"

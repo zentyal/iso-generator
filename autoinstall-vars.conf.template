@@ -34,6 +34,13 @@ LK_UUID=''
 # IPS (Suricata)
 IPS_PPA='ppa:oisf/suricata-stable'
 
+# Docker
+DOCKER_REPO_KEY_NAME='docker.gpg'
+DOCKER_REPO_ARCH='amd64'
+DOCKER_REPO_URL='https://download.docker.com/linux/ubuntu'
+DOCKER_REPO_DIST='jammy'
+DOCKER_REPO_COMPONENTS='stable'
+
 # Offline installation
 FETCH_OFFLINE_PACKAGES='true'
 PKG_TO_DOWNLOAD='

@@ -27,13 +27,13 @@ function disable_whoopsie()
     local patron_end='</policy>'
 
     # Check if the file exists
-    if [ ! -f "$conf_file" ]; then return 1; fi
+    if [ ! -f "$conf_file" ]; then return; fi
 
     # Check if the user exists
-    if grep -q 'whoopsie' /etc/passwd; then return 1; fi
+    if grep -q 'whoopsie' /etc/passwd; then return; fi
 
     # Check if the patron matches
-    if ! grep -q "$patron_start" "$conf_file"; then return 1; fi
+    if ! grep -q "$patron_start" "$conf_file"; then return; fi
 
     # Remove the policy and notify to the service
     sudo sed -i "\#$patron_start#,\#$patron_end#d" "$conf_file"
@@ -50,13 +50,13 @@ function disable_power()
     local patron_end='</policy>'
 
     # Check if the file exists
-    if [ ! -f "$conf_file" ]; then return 1; fi
+    if [ ! -f "$conf_file" ]; then return; fi
 
     # Check if the user exists
-    if grep -q 'power' /etc/group; then return 1; fi
+    if grep -q 'power' /etc/group; then return; fi
 
     # Check if the patron matches
-    if ! grep -q "$patron_start" "$conf_file"; then return 1; fi
+    if ! grep -q "$patron_start" "$conf_file"; then return; fi
 
     # Remove the policy and notify to the service
     sudo sed -i "\#$patron_start#,\#$patron_end#d" "$conf_file"

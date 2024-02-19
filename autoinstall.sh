@@ -113,6 +113,9 @@ function setup_key() {
    for i in ${ZEN_KEYS_URL}; do
       wget -q ${i} -P ${ISO_BUILD_DIR}/zentyal-init/
    done
+
+   # Docker
+   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o ${ISO_BUILD_DIR}/zentyal-init/docker.gpg
 }
 
 
@@ -143,13 +146,14 @@ EOF
    sudo chroot ${CHROOT_PKG_OFFLINE_BUILD_DIR} apt update
    sudo chroot ${CHROOT_PKG_OFFLINE_BUILD_DIR} apt install -y ca-certificates software-properties-common
 
-   # Add Zentyal and Suricata repositories
-   # echo "deb [signed-by=/etc/apt/trusted.gpg.d/${ZEN_KEY_NAME}] ${ZEN_REPO_URL} ${ZEN_VERSION} ${ZEN_REPO_COMPONENTS}" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
-   echo "deb [trusted=yes] ${ZEN_REPO_URL} ${ZEN_VERSION} ${ZEN_REPO_COMPONENTS}" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
+   # Add Zentyal, Suricata and Docker repositories
+   echo "deb [signed-by=/etc/apt/trusted.gpg.d/${ZEN_KEY_NAME}] ${ZEN_REPO_URL} ${ZEN_VERSION} ${ZEN_REPO_COMPONENTS}" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
    sudo chroot ${CHROOT_PKG_OFFLINE_BUILD_DIR} add-apt-repository -y ${IPS_PPA}
+   echo "deb [arch=${DOCKER_REPO_ARCH} signed-by=/etc/apt/trusted.gpg.d/${DOCKER_REPO_KEY_NAME}] ${DOCKER_REPO_URL} ${DOCKER_REPO_DIST} ${DOCKER_REPO_COMPONENTS}" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
 
    # Add Zentyal repository key
    sudo cp ${ISO_BUILD_DIR}/zentyal-init/${ZEN_KEY_NAME} ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/trusted.gpg.d/
+   sudo cp ${ISO_BUILD_DIR}/zentyal-init/${DOCKER_REPO_KEY_NAME} ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/trusted.gpg.d/
 
    # Set extra configuration for Zentyal commercial
    if [ ${ZEN_EDITION} == 'commercial' ]; then
@@ -202,6 +206,11 @@ function set_scrips_vars() {
       -e "s#ZEN_REPO_VERSION#$ZEN_VERSION#" \
       -e "s#ZEN_REPO_COMPONENTS#$ZEN_REPO_COMPONENTS#" \
       -e "s#IPS_PPA#$IPS_PPA#" \
+      -e "s#DOCKER_REPO_KEY_NAME#$DOCKER_REPO_KEY_NAME#g" \
+      -e "s#DOCKER_REPO_ARCH#$DOCKER_REPO_ARCH#g" \
+      -e "s#DOCKER_REPO_URL#$DOCKER_REPO_URL#" \
+      -e "s#DOCKER_REPO_DIST#$DOCKER_REPO_DIST#" \
+      -e "s#DOCKER_REPO_COMPONENTS#$DOCKER_REPO_COMPONENTS#" \
       $ISO_BUILD_DIR/zentyal-init/zentyal-repositories.sh
 
    # Set Ubuntu version
