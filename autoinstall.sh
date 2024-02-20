@@ -110,12 +110,15 @@ function setup_key() {
    # This function downloads the repository keys
 
    # Zentyal
-   for i in ${ZEN_KEYS_URL}; do
+   for i in ${ZEN_REPO_KEYS_URL}; do
       wget -q ${i} -P ${ISO_BUILD_DIR}/zentyal-init/
    done
 
    # Docker
-   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o ${ISO_BUILD_DIR}/zentyal-init/docker.gpg
+   curl -fsSL ${DOCKER_REPO_KEY_URL} | gpg --dearmor -o ${ISO_BUILD_DIR}/zentyal-init/${DOCKER_REPO_KEY_NAME}
+
+   # Firefox
+   wget -q ${FIREFOX_REPO_KEY_URL} -O- | tee ${ISO_BUILD_DIR}/zentyal-init/${FIREFOX_REPO_KEY_NAME}
 }
 
 
@@ -133,7 +136,7 @@ function get_offline_packages() {
    mkdir -p ${CHROOT_PKG_OFFLINE_BUILD_DIR} ${CHROOT_PKG_OFFLINE_RESULT_DIR}
 
    # Create a virtual system based on Ubuntu
-   sudo debootstrap --arch=${ZEN_ARCH} --include=gnupg ${UBUNTU_DIST} ${CHROOT_PKG_OFFLINE_BUILD_DIR}
+   sudo debootstrap --arch=${ZEN_REPO_ARCH} --include=gnupg ${UBUNTU_DIST} ${CHROOT_PKG_OFFLINE_BUILD_DIR}
 
    # Add Ubuntu repository
    cat <<EOF | sudo tee ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
@@ -146,14 +149,20 @@ EOF
    sudo chroot ${CHROOT_PKG_OFFLINE_BUILD_DIR} apt update
    sudo chroot ${CHROOT_PKG_OFFLINE_BUILD_DIR} apt install -y ca-certificates software-properties-common
 
-   # Add Zentyal, Suricata and Docker repositories
-   echo "deb [signed-by=/etc/apt/trusted.gpg.d/${ZEN_KEY_NAME}] ${ZEN_REPO_URL} ${ZEN_VERSION} ${ZEN_REPO_COMPONENTS}" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
-   sudo chroot ${CHROOT_PKG_OFFLINE_BUILD_DIR} add-apt-repository -y ${IPS_PPA}
-   echo "deb [arch=${DOCKER_REPO_ARCH} signed-by=/etc/apt/trusted.gpg.d/${DOCKER_REPO_KEY_NAME}] ${DOCKER_REPO_URL} ${DOCKER_REPO_DIST} ${DOCKER_REPO_COMPONENTS}" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
+   # Add Zentyal repository
+   echo "deb [signed-by=/etc/apt/trusted.gpg.d/${ZEN_REPO_KEY_NAME}] ${ZEN_REPO_URL} ${ZEN_VERSION} ${ZEN_REPO_COMPONENTS}" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
+   sudo cp ${ISO_BUILD_DIR}/zentyal-init/${ZEN_REPO_KEY_NAME} ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/trusted.gpg.d/
 
-   # Add Zentyal repository key
-   sudo cp ${ISO_BUILD_DIR}/zentyal-init/${ZEN_KEY_NAME} ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/trusted.gpg.d/
-   sudo cp ${ISO_BUILD_DIR}/zentyal-init/${DOCKER_REPO_KEY_NAME} ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/trusted.gpg.d/
+   # Add Docker repository
+   echo "deb [arch=$DOCKER_REPO_ARCH signed-by=/etc/apt/trusted.gpg.d/$DOCKER_REPO_KEY_NAME] $DOCKER_REPO_URL $DOCKER_REPO_DIST $DOCKER_REPO_COMPONENTS" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
+   sudo cp ${ISO_BUILD_DIR}/zentyal-init/$DOCKER_REPO_KEY_NAME ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/trusted.gpg.d/
+
+   # Add Firefox repository
+   echo "deb [signed-by=/etc/apt/trusted.gpg.d/$FIREFOX_REPO_KEY_NAME] $FIREFOX_REPO_URL $FIREFOX_REPO_DIST $FIREFOX_REPO_COMPONENTS" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
+   sudo cp ${ISO_BUILD_DIR}/zentyal-init/$FIREFOX_REPO_KEY_NAME ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/trusted.gpg.d/
+
+   # Add APT preference for Firefox so the package can be downloaded from this official repository
+   sudo cp ${ISO_BUILD_DIR}/zentyal-init/${FIREFOX_REPO_PREFERENCE_NAME} ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/preferences.d/mozilla
 
    # Set extra configuration for Zentyal commercial
    if [ ${ZEN_EDITION} == 'commercial' ]; then
@@ -199,18 +208,23 @@ function set_scrips_vars() {
    # This function sets the value of the scripts added to the ISO
 
    # Set repositories
-   # Zentyal
    sed -i \
-      -e "s#ZEN_KEY_NAME#$ZEN_KEY_NAME#g" \
-      -e "s#ZEN_REPO_URL#$ZEN_REPO_URL#" \
-      -e "s#ZEN_REPO_VERSION#$ZEN_VERSION#" \
+      -e "s#ZEN_REPO_KEY_NAME#$ZEN_REPO_KEY_NAME#g" \
+      -e "s#ZEN_REPO_URL#$ZEN_REPO_URL#g" \
+      -e "s#ZEN_REPO_DIST#$ZEN_REPO_DIST#" \
+      -e "s#ZEN_VERSION#$ZEN_VERSION#" \
       -e "s#ZEN_REPO_COMPONENTS#$ZEN_REPO_COMPONENTS#" \
-      -e "s#IPS_PPA#$IPS_PPA#" \
       -e "s#DOCKER_REPO_KEY_NAME#$DOCKER_REPO_KEY_NAME#g" \
       -e "s#DOCKER_REPO_ARCH#$DOCKER_REPO_ARCH#g" \
       -e "s#DOCKER_REPO_URL#$DOCKER_REPO_URL#" \
       -e "s#DOCKER_REPO_DIST#$DOCKER_REPO_DIST#" \
       -e "s#DOCKER_REPO_COMPONENTS#$DOCKER_REPO_COMPONENTS#" \
+      -e "s#FIREFOX_REPO_KEY_NAME#$FIREFOX_REPO_KEY_NAME#g" \
+      -e "s#FIREFOX_REPO_ARCH#$FIREFOX_REPO_ARCH#g" \
+      -e "s#FIREFOX_REPO_URL#$FIREFOX_REPO_URL#" \
+      -e "s#FIREFOX_REPO_DIST#$FIREFOX_REPO_DIST#" \
+      -e "s#FIREFOX_REPO_COMPONENTS#$FIREFOX_REPO_COMPONENTS#" \
+      -e "s#FIREFOX_REPO_PREFERENCE_NAME#$FIREFOX_REPO_PREFERENCE_NAME#" \
       $ISO_BUILD_DIR/zentyal-init/zentyal-repositories.sh
 
    # Set Ubuntu version

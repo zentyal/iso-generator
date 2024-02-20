@@ -16,14 +16,14 @@ UBUNTU_VERSION='Ubuntu 22.04'
 # Zentyal
 ZEN_VERSION='8.0'
 ZEN_EDITION='development'
-ZEN_ARCH='amd64'
-ISO_NAME="zentyal-${ZEN_VERSION}-${ZEN_EDITION}-${ZEN_ARCH}.iso"
+ZEN_REPO_ARCH='amd64'
+ISO_NAME="zentyal-${ZEN_VERSION}-${ZEN_EDITION}-${ZEN_REPO_ARCH}.iso"
 VOL_NAME="zentyal-${ZEN_VERSION}-${ZEN_EDITION}"
-ZEN_KEYS_URL='
+ZEN_REPO_KEYS_URL='
 https://keys.zentyal.org/zentyal-8.0-packages-org.asc
 https://keys.zentyal.org/zentyal-8.0-packages-com.asc
 '
-ZEN_KEY_NAME='zentyal-8.0-packages-org.asc'
+ZEN_REPO_KEY_NAME='zentyal-8.0-packages-org.asc'
 ZEN_REPO_URL='https://packages.zentyal.org/zentyal'
 ZEN_REPO_COMPONENTS='main extra'
 
@@ -31,15 +31,21 @@ ZEN_REPO_COMPONENTS='main extra'
 LK_ID=''
 LK_UUID=''
 
-# IPS (Suricata)
-IPS_PPA='ppa:oisf/suricata-stable'
-
 # Docker
+DOCKER_REPO_KEY_URL='https://download.docker.com/linux/ubuntu/gpg'
 DOCKER_REPO_KEY_NAME='docker.gpg'
 DOCKER_REPO_ARCH='amd64'
 DOCKER_REPO_URL='https://download.docker.com/linux/ubuntu'
 DOCKER_REPO_DIST='jammy'
 DOCKER_REPO_COMPONENTS='stable'
+
+# Firefox
+FIREFOX_REPO_KEY_URL='https://packages.mozilla.org/apt/repo-signing-key.gpg'
+FIREFOX_REPO_KEY_NAME='packages.mozilla.org.asc'
+FIREFOX_REPO_URL='https://packages.mozilla.org/apt'
+FIREFOX_REPO_DIST='mozilla'
+FIREFOX_REPO_COMPONENTS='main'
+FIREFOX_REPO_PREFERENCE_NAME='mozilla'
 
 # Offline installation
 FETCH_OFFLINE_PACKAGES='true'

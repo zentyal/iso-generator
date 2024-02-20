@@ -67,7 +67,7 @@ function add_keys() {
 
 
 function set_repositories() {
-    # This function adds the additional repositories such as Zentyal and Suricata por IPS module
+    # This function adds the additional repositories, what are: Zentyal, Docker and Firefox
 
     echo -e "\n${YELLOW} Running function set_repositories...${NC}"
 
@@ -75,11 +75,12 @@ function set_repositories() {
         mkdir -vp 0755 /var/lib/zentyal/
         echo 'ACTIVATION-REQUIRED' > /var/lib/zentyal/.license
     else
-        echo 'deb [signed-by=/etc/apt/trusted.gpg.d/ZEN_KEY_NAME] ZEN_REPO_URL ZEN_REPO_VERSION ZEN_REPO_COMPONENTS' >> /etc/apt/sources.list.d/zentyal.list
+        echo 'deb [signed-by=/etc/apt/trusted.gpg.d/ZEN_REPO_KEY_NAME] ZEN_REPO_URL ZEN_VERSION ZEN_REPO_COMPONENTS' >> /etc/apt/sources.list.d/zentyal.list
     fi
 
-    add-apt-repository -y IPS_PPA
-    echo "deb [arch=DOCKER_REPO_ARCH signed-by=/etc/apt/trusted.gpg.d/DOCKER_REPO_KEY_NAME] DOCKER_REPO_URL DOCKER_REPO_DIST DOCKER_REPO_COMPONENTS" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list.d/docker.list
+    echo "deb [arch=DOCKER_REPO_ARCH signed-by=/etc/apt/trusted.gpg.d/DOCKER_REPO_KEY_NAME] DOCKER_REPO_URL DOCKER_REPO_DIST DOCKER_REPO_COMPONENTS" | tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list.d/docker.list
+    echo "deb [signed-by=/etc/apt/trusted.gpg.d/FIREFOX_REPO_KEY_NAME] FIREFOX_REPO_URL FIREFOX_REPO_DIST FIREFOX_REPO_COMPONENTS" | tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list.d/mozilla.list
+    cp ${ZENTYAL_INIT_DIR}/FIREFOX_REPO_PREFERENCE_NAME /etc/apt/preferences.d/FIREFOX_REPO_PREFERENCE_NAME
 
     echo -e "${GREEN}...OK${NC}";echo
 }
