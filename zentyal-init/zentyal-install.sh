@@ -131,7 +131,7 @@ function zentyal_gui
 
   if [[ ! -f /etc/X11/default-display-manager ]]
     then
-      ## For: Ubuntu Server 20.04 versions Live and Legacy
+      ## For Ubuntu Server
       echo -e "${GREEN}${BOLD}...OK${NC}${NORM}";echo
       continue
   fi
@@ -139,26 +139,23 @@ function zentyal_gui
   CUR_GUI=$(cat /etc/X11/default-display-manager | xargs basename)
 
   case ${CUR_GUI} in
-    gdm3) ## For: Ubuntu Desktop (Gnome) 20.04
+    gdm3) ## Ubuntu Desktop (Gnome)
       echo 'gdm3 shared/default-x-display-manager select lxdm' | debconf-set-selections
       DEBIAN_FRONTEND=noninteractive dpkg-reconfigure --force gdm3
       systemctl disable gdm3 lxdm
       which lxdm > /etc/X11/default-display-manager
-      systemctl enable zentyal.lxdm
     ;;
-    sddm) ## For: Lubuntu 20.04 and Kubuntu 20.04
+    sddm) ## Lubuntu and Kubuntu
       echo 'sddm shared/default-x-display-manager select lxdm' | debconf-set-selections
       DEBIAN_FRONTEND=noninteractive dpkg-reconfigure --force sddm
       systemctl disable sddm lxdm
       which lxdm > /etc/X11/default-display-manager
-      systemctl enable zentyal.lxdm
     ;;
-    lightdm) ## For: Xubuntu 20.04
+    lightdm) ## Xubuntu
       echo 'lightdm shared/default-x-display-manager select lxdm' | debconf-set-selections
       DEBIAN_FRONTEND=noninteractive dpkg-reconfigure --force lightdm
       systemctl disable lightdm lxdm
       which lxdm > /etc/X11/default-display-manager
-      systemctl enable zentyal.lxdm
     ;;
   esac
 
@@ -167,10 +164,9 @@ function zentyal_gui
   echo -e "${GREEN} - Configuring the graphical environment...${NC}\n"
 
   /usr/share/zenbuntu-desktop/x11-setup >> /var/tmp/zentyal-installer.log 2>&1
-  systemctl enable zentyal.lxdm
-  systemctl start zentyal.lxdm
+  systemctl enable --now zentyal.lxdm
 
-  ## If these commands are not executed, the keyboard layout used is EN  in the GUI session is used instead of the selected during the installation until the reboot
+  ## If these commands are not executed, the keyboard layout used is EN in the GUI session is used instead of the selected during the installation until the reboot
   sleep 15
   su -c "DISPLAY=:0.0 setxkbmap $(localectl | grep 'Layout' | awk '{print $3}')" ${INS_USER}
 
