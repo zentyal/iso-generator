@@ -66,3 +66,4 @@ autoinstall:
     runcmd:
       - 'bash /var/zentyal-init/zentyal-repositories.sh'
       - 'bash /var/zentyal-init/zentyal-install.sh Y'
+      - 'bash /var/zentyal-init/extra-configurations.sh'

@@ -55,8 +55,19 @@ function set_local_repository() {
 }
 
 
+function add_keys() {
+    # This function adds the required repository keys
+
+    echo -e "\n${YELLOW} Running function add_keyss...${NC}"
+
+    cp ${ZENTYAL_INIT_DIR}/*.{asc,gpg} /etc/apt/trusted.gpg.d/
+
+    echo -e "${GREEN}...OK${NC}";echo
+}
+
+
 function set_repositories() {
-    # This function adds the additional repositories such as Zentyal and Suricata por IPS module
+    # This function adds the additional repositories, what are: Zentyal, Docker and Firefox
 
     echo -e "\n${YELLOW} Running function set_repositories...${NC}"
 
@@ -64,22 +75,12 @@ function set_repositories() {
         mkdir -vp 0755 /var/lib/zentyal/
         echo 'ACTIVATION-REQUIRED' > /var/lib/zentyal/.license
     else
-        echo 'deb [signed-by=/etc/apt/trusted.gpg.d/ZEN_KEY_NAME] ZEN_REPO_URL ZEN_REPO_VERSION ZEN_REPO_COMPONENTS' >> /etc/apt/sources.list.d/zentyal.list
+        echo 'deb [signed-by=/etc/apt/trusted.gpg.d/ZEN_REPO_KEY_NAME] ZEN_REPO_URL ZEN_VERSION ZEN_REPO_COMPONENTS' >> /etc/apt/sources.list.d/zentyal.list
     fi
 
-    echo 'deb [signed-by=/etc/apt/trusted.gpg.d/IPS_KEY_NAME] IPS_REPO_URL IPS_REPO_DIST IPS_REPO_COMPONENTS' >> /etc/apt/sources.list.d/ips.list
-
-    echo -e "${GREEN}...OK${NC}";echo
-}
-
-
-function add_keys() {
-    # This function adds the required repository keys
-
-    echo -e "\n${YELLOW} Running function add_keys...${NC}"
-
-    cp ${ZENTYAL_INIT_DIR}/*.asc /etc/apt/trusted.gpg.d/
-    cp ${ZENTYAL_INIT_DIR}/IPS_KEY_NAME /etc/apt/trusted.gpg.d/IPS_KEY_NAME
+    echo "deb [arch=DOCKER_REPO_ARCH signed-by=/etc/apt/trusted.gpg.d/DOCKER_REPO_KEY_NAME] DOCKER_REPO_URL DOCKER_REPO_DIST DOCKER_REPO_COMPONENTS" | tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list.d/docker.list
+    echo "deb [signed-by=/etc/apt/trusted.gpg.d/FIREFOX_REPO_KEY_NAME] FIREFOX_REPO_URL FIREFOX_REPO_DIST FIREFOX_REPO_COMPONENTS" | tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list.d/mozilla.list
+    cp ${ZENTYAL_INIT_DIR}/FIREFOX_REPO_PREFERENCE_NAME /etc/apt/preferences.d/FIREFOX_REPO_PREFERENCE_NAME
 
     echo -e "${GREEN}...OK${NC}";echo
 }
@@ -92,7 +93,7 @@ function add_keys() {
 echo -e "${GREEN}Running script ${0} ...${NC}"
 
 set_local_repository
-set_repositories
 add_keys
+set_repositories
 
 echo -e "${GREEN} Running script ${0} completed.${NC}"

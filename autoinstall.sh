@@ -7,7 +7,9 @@ test -r autoinstall-vars.conf || exit 1
 . ./autoinstall-vars.conf
 
 if [ ${GEN_DEBUG} == 'true' ]; then
-   set -x    # Debug
+   set -ex
+else
+   set -e
 fi
 
 
@@ -20,12 +22,17 @@ function initial_tasks() {
 
    # Remove an existing ISO
    if [ -f "${ISO_NAME}" ]; then
-      rm ${ISO_NAME}*
+      rm -f ${ISO_NAME}*
    fi
 
    # Remove the ISO build directory
    if [ -d "${ISO_BUILD_DIR}" ]; then
       sudo rm -rf "${ISO_BUILD_DIR}"
+   fi
+
+   # Remove the temporal directory
+   if [ -d "${TMP_DIR}" ]; then
+      sudo rm -rf "${TMP_DIR}"
    fi
 }
 
@@ -35,7 +42,7 @@ function get_iso() {
 
    # Download the ISO if it is not present
    if [ ! -f ${UBUNTU_ISO_PATH} ]; then
-      wget https://releases.ubuntu.com/focal/${UBUNTU_ISO_NAME} -P ${UBUNTU_ISO_PATH}
+      wget https://releases.ubuntu.com/${UBUNTU_DIST}/${UBUNTU_ISO_NAME} -P ${UBUNTU_ISO_PATH}
    fi
 
    # Create the directory where the ISO will be generated
@@ -49,53 +56,30 @@ function get_iso() {
 function setup_boot() {
    # This function configures the GRUB
 
-   cd ${BASE_DIR}/templates-boot/
+   # Create the temporal directory
+   mkdir ${TMP_DIR}
 
-   # Configure Grub and Isolinux
-   cp template-boot.grub.cfg ${ISO_BUILD_DIR}/boot/grub/grub.cfg
-   cp template-boot.loopback.cfg ${ISO_BUILD_DIR}/boot/grub/loopback.cfg
-   cp template-boot.isolinux-zentyal.cfg ${ISO_BUILD_DIR}/isolinux/txt.cfg
+   cd ${ISO_BUILD_DIR}
 
-   ## Initial endless boot
-   sed -i -r 's/timeout\s+[0-9]+/timeout 0/g' ${ISO_BUILD_DIR}/isolinux/isolinux.cfg
+   ## Move MBR and GPT img files to a temporal location
+   mv ${ISO_BUILD_DIR}/\[BOOT\]/*.img ${TMP_DIR}/
+   rm -rf ${ISO_BUILD_DIR}/\[BOOT\]
 
-   # Set the Zentyal version
-   for file in /boot/grub/grub.cfg /boot/grub/loopback.cfg isolinux/txt.cfg; do
-      sed -i "s/VERSION/$ZEN_VERSION-$ZEN_EDITION/g" ${ISO_BUILD_DIR}/${file}
-   done
-
-   # Remove unnecessary file
-   rm -rf ${ISO_BUILD_DIR}/[BOOT]
+   # Copy Grub2 configuration file
+   cp ${BASE_DIR}/templates-boot/template-boot.grub.cfg boot/grub/grub.cfg
 }
 
 
-function setup_image() {
-   # This function changes the initial boot ISO image
+function setup_theme() {
+   # This function adds a theme to the grub menu
 
    cd ${BASE_DIR}
 
-   # Copy the Zentyal image for the initial grub menu
-   cp images/splash.* ${ISO_BUILD_DIR}/isolinux/
-   cd ${ISO_BUILD_DIR}/isolinux
+   # Create the theme directory
+   mkdir -v ${ISO_BUILD_DIR}/boot/grub/themes/
 
-   mkdir -v tmp
-   cd tmp
-
-   cat ../bootlogo | cpio --extract --make-directories --no-absolute-filenames
-
-   # Copy the first initial boot image
-   cp ${BASE_DIR}/images/splash.pcx .
-   cp ${BASE_DIR}/images/initial-boot.pcx access.pcx
-
-   # Avoid choosing initial language
-   echo 'en' > lang
-
-   find . | cpio -o > ../bootlogo
-   cd ../
-
-   if [ ${GEN_DEBUG} != 'true' ]; then
-      rm -rf tmp
-   fi
+   # Copy the grub theme
+   cp -vr ${THEME}/* ${ISO_BUILD_DIR}/boot/grub/themes/
 }
 
 
@@ -104,7 +88,7 @@ function setup_autoinstall() {
 
    cd ${BASE_DIR}/templates-cloud_init/
 
-   # Add the three required files
+   # Add the three required files for each grub menu
    for file in zentyal-delete-all zentyal-expert zentyal-expert-gui; do
       # Create the directory in the ISO
       mkdir ${ISO_BUILD_DIR}/${file}
@@ -116,27 +100,25 @@ function setup_autoinstall() {
       touch ${ISO_BUILD_DIR}/${file}/meta-data
    done
 
-   # Use a debugging template that installs Zentyal without interactive questions
-   # cp ${BASE_DIR}/templates-cloud_init/template.user-data_developer ${ISO_BUILD_DIR}/zentyal-delete-all/user-data
-
    # Add the Zentyal directory that manages the post-installation
    mkdir ${ISO_BUILD_DIR}/zentyal-init
    cp ${BASE_DIR}/zentyal-init/* ${ISO_BUILD_DIR}/zentyal-init/
 }
 
 
-function setup_keys() {
+function setup_key() {
    # This function downloads the repository keys
 
    # Zentyal
-   for i in ${ZEN_KEYS_URL}; do
+   for i in ${ZEN_REPO_KEYS_URL}; do
       wget -q ${i} -P ${ISO_BUILD_DIR}/zentyal-init/
    done
 
-   # Suricata (IPS module)
-   gpg --keyserver keyserver.ubuntu.com --recv-keys ${IPS_KEY_ID}
-   gpg --export ${IPS_KEY_ID} > ${ISO_BUILD_DIR}/zentyal-init/suricata.gpg
-   gpg --batch --yes --delete-keys ${IPS_KEY_ID}
+   # Docker
+   curl -fsSL ${DOCKER_REPO_KEY_URL} | gpg --dearmor -o ${ISO_BUILD_DIR}/zentyal-init/${DOCKER_REPO_KEY_NAME}
+
+   # Firefox
+   wget -q ${FIREFOX_REPO_KEY_URL} -O- | tee ${ISO_BUILD_DIR}/zentyal-init/${FIREFOX_REPO_KEY_NAME}
 }
 
 
@@ -154,26 +136,33 @@ function get_offline_packages() {
    mkdir -p ${CHROOT_PKG_OFFLINE_BUILD_DIR} ${CHROOT_PKG_OFFLINE_RESULT_DIR}
 
    # Create a virtual system based on Ubuntu
-   sudo debootstrap --arch=${ZEN_ARCH} --include=gnupg ${UBUNTU_DIST} ${CHROOT_PKG_OFFLINE_BUILD_DIR}
+   sudo debootstrap --arch=${ZEN_REPO_ARCH} --include=gnupg ${UBUNTU_DIST} ${CHROOT_PKG_OFFLINE_BUILD_DIR}
 
    # Add Ubuntu repository
    cat <<EOF | sudo tee ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
-deb http://archive.ubuntu.com/ubuntu focal main restricted universe multiverse
-deb http://archive.ubuntu.com/ubuntu focal-updates main restricted universe multiverse
-deb http://security.ubuntu.com/ubuntu focal-security main restricted universe
+deb http://archive.ubuntu.com/ubuntu ${UBUNTU_DIST} main restricted universe multiverse
+deb http://archive.ubuntu.com/ubuntu ${UBUNTU_DIST}-updates main restricted universe multiverse
+deb http://security.ubuntu.com/ubuntu ${UBUNTU_DIST}-security main restricted universe
 EOF
 
    # Update the repositories index and installing a required package for HTTPS repositories
    sudo chroot ${CHROOT_PKG_OFFLINE_BUILD_DIR} apt update
-   sudo chroot ${CHROOT_PKG_OFFLINE_BUILD_DIR} apt install -y ca-certificates
+   sudo chroot ${CHROOT_PKG_OFFLINE_BUILD_DIR} apt install -y ca-certificates software-properties-common
 
-   # Add Zentyal and Suricata repositories
-   echo "deb [signed-by=/etc/apt/trusted.gpg.d/${IPS_KEY_NAME}] ${IPS_REPO_URL} ${IPS_REPO_DIST} ${IPS_REPO_COMPONENTS}" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
-   echo "deb [signed-by=/etc/apt/trusted.gpg.d/${ZEN_KEY_NAME}] ${ZEN_REPO_URL} ${ZEN_VERSION} ${ZEN_REPO_COMPONENTS}" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
+   # Add Zentyal repository
+   echo "deb [signed-by=/etc/apt/trusted.gpg.d/${ZEN_REPO_KEY_NAME}] ${ZEN_REPO_URL} ${ZEN_VERSION} ${ZEN_REPO_COMPONENTS}" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
+   sudo cp ${ISO_BUILD_DIR}/zentyal-init/${ZEN_REPO_KEY_NAME} ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/trusted.gpg.d/
 
-   # Add repositories keys
-   sudo cp ${ISO_BUILD_DIR}/zentyal-init/${ZEN_KEY_NAME} ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/trusted.gpg.d/
-   sudo cp ${ISO_BUILD_DIR}/zentyal-init/${IPS_KEY_NAME} ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/trusted.gpg.d/
+   # Add Docker repository
+   echo "deb [arch=$DOCKER_REPO_ARCH signed-by=/etc/apt/trusted.gpg.d/$DOCKER_REPO_KEY_NAME] $DOCKER_REPO_URL $DOCKER_REPO_DIST $DOCKER_REPO_COMPONENTS" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
+   sudo cp ${ISO_BUILD_DIR}/zentyal-init/$DOCKER_REPO_KEY_NAME ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/trusted.gpg.d/
+
+   # Add Firefox repository
+   echo "deb [signed-by=/etc/apt/trusted.gpg.d/$FIREFOX_REPO_KEY_NAME] $FIREFOX_REPO_URL $FIREFOX_REPO_DIST $FIREFOX_REPO_COMPONENTS" | sudo tee -a ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/sources.list
+   sudo cp ${ISO_BUILD_DIR}/zentyal-init/$FIREFOX_REPO_KEY_NAME ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/trusted.gpg.d/
+
+   # Add APT preference for Firefox so the package can be downloaded from this official repository
+   sudo cp ${ISO_BUILD_DIR}/zentyal-init/${FIREFOX_REPO_PREFERENCE_NAME} ${CHROOT_PKG_OFFLINE_BUILD_DIR}/etc/apt/preferences.d/mozilla
 
    # Set extra configuration for Zentyal commercial
    if [ ${ZEN_EDITION} == 'commercial' ]; then
@@ -181,9 +170,8 @@ EOF
       PKG_TO_DOWNLOAD="${PKG_TO_DOWNLOAD} ${PKG_TO_DOWNLOAD_COMMERCIAL}"
    fi
 
-   # Update the repositories index and revmove Netplan
+   # Update the repositories index
    sudo chroot ${CHROOT_PKG_OFFLINE_BUILD_DIR} apt update
-   sudo chroot ${CHROOT_PKG_OFFLINE_BUILD_DIR} apt purge -y netplan.io
 
    # Download the packages and
    echo ${PKG_TO_DOWNLOAD} | \
@@ -220,20 +208,23 @@ function set_scrips_vars() {
    # This function sets the value of the scripts added to the ISO
 
    # Set repositories
-   # Zentyal
    sed -i \
-      -e "s#ZEN_KEY_NAME#$ZEN_KEY_NAME#g" \
-      -e "s#ZEN_REPO_URL#$ZEN_REPO_URL#" \
-      -e "s#ZEN_REPO_VERSION#$ZEN_VERSION#" \
+      -e "s#ZEN_REPO_KEY_NAME#$ZEN_REPO_KEY_NAME#g" \
+      -e "s#ZEN_REPO_URL#$ZEN_REPO_URL#g" \
+      -e "s#ZEN_REPO_DIST#$ZEN_REPO_DIST#" \
+      -e "s#ZEN_VERSION#$ZEN_VERSION#" \
       -e "s#ZEN_REPO_COMPONENTS#$ZEN_REPO_COMPONENTS#" \
-      $ISO_BUILD_DIR/zentyal-init/zentyal-repositories.sh
-
-   # Suricata (IPS)
-   sed -i \
-      -e "s#IPS_KEY_NAME#$IPS_KEY_NAME#g" \
-      -e "s#IPS_REPO_URL#$IPS_REPO_URL#" \
-      -e "s#IPS_REPO_DIST#$IPS_REPO_DIST#" \
-      -e "s#IPS_REPO_COMPONENTS#$IPS_REPO_COMPONENTS#" \
+      -e "s#DOCKER_REPO_KEY_NAME#$DOCKER_REPO_KEY_NAME#g" \
+      -e "s#DOCKER_REPO_ARCH#$DOCKER_REPO_ARCH#g" \
+      -e "s#DOCKER_REPO_URL#$DOCKER_REPO_URL#" \
+      -e "s#DOCKER_REPO_DIST#$DOCKER_REPO_DIST#" \
+      -e "s#DOCKER_REPO_COMPONENTS#$DOCKER_REPO_COMPONENTS#" \
+      -e "s#FIREFOX_REPO_KEY_NAME#$FIREFOX_REPO_KEY_NAME#g" \
+      -e "s#FIREFOX_REPO_ARCH#$FIREFOX_REPO_ARCH#g" \
+      -e "s#FIREFOX_REPO_URL#$FIREFOX_REPO_URL#" \
+      -e "s#FIREFOX_REPO_DIST#$FIREFOX_REPO_DIST#" \
+      -e "s#FIREFOX_REPO_COMPONENTS#$FIREFOX_REPO_COMPONENTS#" \
+      -e "s#FIREFOX_REPO_PREFERENCE_NAME#$FIREFOX_REPO_PREFERENCE_NAME#" \
       $ISO_BUILD_DIR/zentyal-init/zentyal-repositories.sh
 
    # Set Ubuntu version
@@ -250,36 +241,33 @@ function iso_generation() {
    # This function generates the ISO
 
    cd ${ISO_BUILD_DIR}
-   find '!' -name "md5sum.txt" '!' -path "./isolinux/*" -follow -type f -exec "$(which md5sum)" {} \; > md5sum.txt
 
-   cd ${BASE_DIR}
-
-   genisoimage \
-   -D \
-   -r \
-   -V "${VOL_NAME}" \
-   -cache-inodes \
-   -J \
-   -l \
-   -input-charset utf-8 \
-   -joliet-long \
-      -b isolinux/isolinux.bin \
-      -c isolinux/boot.cat \
-   -no-emul-boot \
-   -boot-load-size 4 \
-   -boot-info-table \
+   sudo xorriso -as mkisofs -r \
+   -V "Zentyal ${ZEN_VERSION}" \
+   -o ../${ISO_NAME} \
+   --grub2-mbr ${TMP_DIR}/1-Boot-NoEmul.img \
+   -partition_offset 16 \
+   --mbr-force-bootable \
+   -append_partition 2 28732ac11ff8d211ba4b00a0c93ec93b ${TMP_DIR}/2-Boot-NoEmul.img \
+   -appended_part_as_gpt \
+   -iso_mbr_part_type a2a0d0ebe5b9334487c068b6b72699c7 \
+   -c '/boot.catalog' \
+   -b '/boot/grub/i386-pc/eltorito.img' \
+      -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
    -eltorito-alt-boot \
-   -e boot/grub/efi.img \
+   -e '--interval:appended_partition_2:::' \
    -no-emul-boot \
-   -o ${ISO_NAME} \
-   ${ISO_BUILD_DIR}
+   .
 
    # Generate the MD5 file from the ISO
-   md5sum ${ISO_NAME} > ${ISO_NAME}.md5
+   md5sum ../${ISO_NAME} > ../${ISO_NAME}.md5
+}
 
-   if [ ${GEN_DEBUG} != 'true' ]; then
+function clean() {
+   # This functions removes the temporal files that were created
+
       sudo rm -rf ${ISO_BUILD_DIR}
-   fi
+      sudo rm -rf ${CHROOT_PKG_OFFLINE_BASE}
 }
 
 
@@ -287,21 +275,21 @@ function iso_generation() {
 ## Running the functions
 ##
 
-# 1 - From scratch
+# 1 - Prepare the environment
 initial_tasks
 
-# 2 - Get and unpack the ISO
+# 2 - Download and unpack the ISO
 get_iso
 
-# 3 - Configure the grub
+# 3 - Configure Grub2
 setup_boot
-setup_image
+setup_theme
 
 # 4 - Set up Cloud-init
 setup_autoinstall
 
 # 5 - Fetch the repository keys
-setup_keys
+setup_key
 
 # 6 - Set up the offline installation
 if [ "${FETCH_OFFLINE_PACKAGES}" == 'true' ]; then
@@ -311,7 +299,10 @@ fi
 # 7. Set the values of the scripts
 set_scrips_vars
 
-# 8 - Generate
+# 8 - Generate the ISO file
 iso_generation
+
+# 9 - Clean the environment
+if [ ${GEN_DEBUG} != 'true' ]; then clean; fi
 
 echo "The ISO was successfully generated in ${BASE_DIR}/${ISO_NAME}"

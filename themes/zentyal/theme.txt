@@ -1,0 +1,33 @@
+## Documentation: https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html
+
+###
+# Main options
+###
+desktop-image: "zentyal-dev.png"
+terminal-font: "Terminus Regular 16"
+terminal-box: "terminal_box_*.png"
+terminal-left: "0"
+terminal-top: "0"
+terminal-width: "100%"
+terminal-height: "90%"
+terminal-border: "0"
+
+###
+# Boot menu
+###
++ boot_menu {
+  left = 10%
+  top = 60%
+  width = 70%
+  height = 60%
+  item_font = "Ubuntu Regular 20"
+  item_color = "#cccccc"
+  selected_item_color = "#ffffff"
+  icon_width = 30
+  icon_height = 30
+  item_icon_space = 18
+  item_height = 40
+  item_padding = 4
+  item_spacing = 4
+  selected_item_pixmap_style = "select_*.png"
+}

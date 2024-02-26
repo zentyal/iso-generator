@@ -4,37 +4,48 @@
 GEN_DEBUG='false'
 BASE_DIR='/home/zentyal/iso-generator'
 ISO_BUILD_DIR="${BASE_DIR}/source-files"
+TMP_DIR="${BASE_DIR}/tmp"
+THEME="${BASE_DIR}/themes/zentyal/"
 
 # Ubuntu
-UBUNTU_ISO_NAME='ubuntu-20.04.6-live-server-amd64.iso'   ## You can get the name from here: https://releases.ubuntu.com/focal/
+UBUNTU_ISO_NAME='ubuntu-22.04.3-live-server-amd64.iso'   ## You can get the name from here: https://releases.ubuntu.com/focal/
 UBUNTU_ISO_PATH="${BASE_DIR}/${UBUNTU_ISO_NAME}"
-UBUNTU_DIST='focal'
-UBUNTU_VERSION='Ubuntu 20.04'
+UBUNTU_DIST='jammy'
+UBUNTU_VERSION='Ubuntu 22.04'
 
 # Zentyal
-ZEN_VERSION='7.1'
+ZEN_VERSION='8.0'
 ZEN_EDITION='development'
-ZEN_ARCH='amd64'
-ISO_NAME="zentyal-${ZEN_VERSION}-${ZEN_EDITION}-${ZEN_ARCH}.iso"
+ZEN_REPO_ARCH='amd64'
+ISO_NAME="zentyal-${ZEN_VERSION}-${ZEN_EDITION}-${ZEN_REPO_ARCH}.iso"
 VOL_NAME="zentyal-${ZEN_VERSION}-${ZEN_EDITION}"
-ZEN_KEY_URL='https://keys.zentyal.org/zentyal-7.1-packages-org.asc'
-ZEN_KEYS_URL='
-https://keys.zentyal.org/zentyal-7.1-packages-org.asc
-https://keys.zentyal.org/zentyal-7.1-packages-com.asc
+ZEN_REPO_KEYS_URL='
+https://keys.zentyal.org/zentyal-8.0-packages-org.asc
+https://keys.zentyal.org/zentyal-8.0-packages-com.asc
 '
-ZEN_REPO_URL='packages.zentyal.org/zentyal'
+ZEN_REPO_KEY_NAME='zentyal-8.0-packages-org.asc'
+ZEN_REPO_URL='https://packages.zentyal.org/zentyal'
 ZEN_REPO_COMPONENTS='main extra'
 
 # Zentyal commercial
 LK_ID=''
 LK_UUID=''
 
-# IPS (Suricata)
-IPS_KEY_ID='D7F87B2966EB736F'
-IPS_KEY_NAME='suricata.gpg'
-IPS_REPO_URL='http://ppa.launchpad.net/oisf/suricata-stable/ubuntu'
-IPS_REPO_DIST='focal'
-IPS_REPO_COMPONENTS='main'
+# Docker
+DOCKER_REPO_KEY_URL='https://download.docker.com/linux/ubuntu/gpg'
+DOCKER_REPO_KEY_NAME='docker.gpg'
+DOCKER_REPO_ARCH='amd64'
+DOCKER_REPO_URL='https://download.docker.com/linux/ubuntu'
+DOCKER_REPO_DIST='jammy'
+DOCKER_REPO_COMPONENTS='stable'
+
+# Firefox
+FIREFOX_REPO_KEY_URL='https://packages.mozilla.org/apt/repo-signing-key.gpg'
+FIREFOX_REPO_KEY_NAME='packages.mozilla.org.asc'
+FIREFOX_REPO_URL='https://packages.mozilla.org/apt'
+FIREFOX_REPO_DIST='mozilla'
+FIREFOX_REPO_COMPONENTS='main'
+FIREFOX_REPO_PREFERENCE_NAME='mozilla'
 
 # Offline installation
 FETCH_OFFLINE_PACKAGES='true'

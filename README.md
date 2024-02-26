@@ -1,5 +1,7 @@
 # ISO generation
 
+This repository explains how to build a custom ISO file for Zentyal 8.0. If you want to build a Zentyal 7.1 ISO, use the branch [7.1](https://github.com/zentyal/iso-generator/tree/7.1) instead.
+
 ## Requirements
 
 The computer requirements to build an ISO are:
@@ -28,7 +30,7 @@ The computer requirements to build an ISO are:
 
 ## Generate the ISO
 
-To generate a new ISO based on an Ubuntu Server 20.04 live you must do the following:
+To generate a new ISO based on an [Ubuntu Server 22.04](https://releases.ubuntu.com/jammy/ubuntu-22.04.3-live-server-amd64.iso) live you must do the following:
 
 1. Clone this repository:
 
