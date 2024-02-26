@@ -168,7 +168,7 @@ function zentyal_gui
 
   ## If these commands are not executed, the keyboard layout used is EN in the GUI session is used instead of the selected during the installation until the reboot
   sleep 15
-  su -c "DISPLAY=:0.0 setxkbmap $(localectl | grep 'Layout' | awk '{print $3}')" ${INS_USER}
+  su -c "DISPLAY=:0 setxkbmap $(localectl | grep 'Layout' | awk '{print $3}')" ${INS_USER}
 
   echo -e "${GREEN}${BOLD}...OK${NC}${NORM}";echo
 }
@@ -180,21 +180,23 @@ function zentyal_installation
 
   DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends zentyal zenbuntu-core
 
-  if [[ -n ${ZEN_GUI} ]]
-    then
-      zentyal_gui
-  fi
-
   touch /var/lib/zentyal/.commercial-edition
   touch /var/lib/zentyal/.license
 
-  echo -e "${GREEN}${BOLD}...OK${NC}${NORM}";echo
+  if [[ -n ${ZEN_GUI} ]]
+    then
+      zentyal_gui
+      sleep 10
+      systemctl restart zentyal.lxdm
+    else
+      echo -e "${GREEN}${BOLD}...OK${NC}${NORM}";echo
 
-  echo -e "\n${GREEN}${BOLD}Installation complete, you can access the Zentyal Web Interface at:
+      echo -e "\n${GREEN}${BOLD}Installation complete, you can access the Zentyal Web Interface at:
 
-  * https://<zentyal-ip-address>:8443/
+        * https://<zentyal-ip-address>:8443/
 
-  ${NC}${NORM}"
+      ${NC}${NORM}"
+  fi
 }
 
 
@@ -225,3 +227,11 @@ fi
 
 check_requirements
 zentyal_installation
+
+
+###
+# Final commands
+###
+
+# Disable cloud-init
+touch /etc/cloud/cloud-init.disabled
