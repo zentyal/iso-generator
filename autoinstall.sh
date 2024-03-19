@@ -80,6 +80,12 @@ function setup_theme() {
 
    # Copy the grub theme
    cp -vr ${THEME}/* ${ISO_BUILD_DIR}/boot/grub/themes/
+
+   if [[ ${ZEN_EDITION} == 'commercial' ]]; then
+      sed -i 's/zentyal-.*.png/zentyal-com.png/' ${ISO_BUILD_DIR}/boot/grub/themes/theme.txt
+   else
+      sed -i 's/zentyal-.*.png/zentyal-dev.png/' ${ISO_BUILD_DIR}/boot/grub/themes/theme.txt
+   fi
 }
 
 
