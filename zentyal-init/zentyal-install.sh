@@ -166,6 +166,11 @@ function zentyal_gui
   /usr/share/zenbuntu-desktop/x11-setup >> /var/tmp/zentyal-installer.log 2>&1
   systemctl enable --now zentyal.lxdm
 
+  ## Set keyboard layout temporarily
+  sleep 15
+  KEYMAP=$(localectl | grep 'Layout' | awk '{print $3}')
+  su -c "DISPLAY=:0 setxkbmap $KEYMAP" ${INS_USER}
+
   echo -e "${GREEN}${BOLD}...OK${NC}${NORM}";echo
 }
 
@@ -191,11 +196,6 @@ function zentyal_installation
 
       ${NC}${NORM}"
   fi
-
-  ## Set keyboard layout temporarily
-  sleep 15
-  KEYMAP=$(localectl | grep 'Layout' | awk '{print $3}')
-  su -c "DISPLAY=:0 setxkbmap $KEYMAP" ${INS_USER}
 }
 
 
