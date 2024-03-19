@@ -35,9 +35,8 @@ function disable_power()
     # Check if the patron matches
     if ! grep -q "$patron_start" "$conf_file"; then return; fi
 
-    # Remove the policy and notify to the service
+    # Remove the policy
     sudo sed -i "\#$patron_start#,\#$patron_end#d" "$conf_file"
-    systemctl restart dbus
 }
 
 

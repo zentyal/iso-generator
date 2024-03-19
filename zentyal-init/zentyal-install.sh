@@ -166,9 +166,10 @@ function zentyal_gui
   /usr/share/zenbuntu-desktop/x11-setup >> /var/tmp/zentyal-installer.log 2>&1
   systemctl enable --now zentyal.lxdm
 
-  ## If these commands are not executed, the keyboard layout used is EN in the GUI session is used instead of the selected during the installation until the reboot
+  ## Set keyboard layout temporarily
   sleep 15
-  su -c "DISPLAY=:0 setxkbmap $(localectl | grep 'Layout' | awk '{print $3}')" ${INS_USER}
+  KEYMAP=$(localectl | grep 'Layout' | awk '{print $3}')
+  su -c "DISPLAY=:0 setxkbmap $KEYMAP" ${INS_USER}
 
   echo -e "${GREEN}${BOLD}...OK${NC}${NORM}";echo
 }
@@ -186,8 +187,6 @@ function zentyal_installation
   if [[ -n ${ZEN_GUI} ]]
     then
       zentyal_gui
-      sleep 10
-      systemctl restart zentyal.lxdm
     else
       echo -e "${GREEN}${BOLD}...OK${NC}${NORM}";echo
 
