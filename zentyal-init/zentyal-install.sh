@@ -133,7 +133,7 @@ function zentyal_gui
     then
       ## For Ubuntu Server
       echo -e "${GREEN}${BOLD}...OK${NC}${NORM}";echo
-      continue
+      return 0
   fi
 
   CUR_GUI=$(cat /etc/X11/default-display-manager | xargs basename)
@@ -163,6 +163,7 @@ function zentyal_gui
 
   echo -e "${GREEN} - Configuring the graphical environment...${NC}\n"
 
+  systemctl stop lxdm
   /usr/share/zenbuntu-desktop/x11-setup >> /var/tmp/zentyal-installer.log 2>&1
   systemctl enable --now zentyal.lxdm
 
