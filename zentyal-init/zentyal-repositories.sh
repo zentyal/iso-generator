@@ -89,11 +89,11 @@ function set_repository_zentyal() {
 
 cat > /etc/apt/sources.list.d/${ZENTYAL_REPOSITORY_NAME} <<EOF
 # Zentyal repository
-Types: deb
-URIs: ZEN_REPO_URL
-Suites: ZEN_VERSION
-Components: ZEN_REPO_COMPONENTS
-Signed-By: ${BASE_REPO_KEY_DIR}/ZEN_REPO_KEY_NAME
+# Types: deb
+# URIs: ZEN_REPO_URL
+# Suites: ZEN_VERSION
+# Components: ZEN_REPO_COMPONENTS
+# Signed-By: ${BASE_REPO_KEY_DIR}/ZEN_REPO_KEY_NAME
 
 EOF
 
