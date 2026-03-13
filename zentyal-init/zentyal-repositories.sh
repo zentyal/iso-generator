@@ -116,7 +116,7 @@ Signed-By: ${BASE_REPO_KEY_DIR}/FIREFOX_REPO_KEY_NAME
 
 EOF
 
-    cp ${ZENTYAL_INIT_DIR}/FIREFOX_REPO_PREFERENCE_NAME /etc/apt/preferences.d/FIREFOX_REPO_PREFERENCE_NAME
+    cp ${ZENTYAL_INIT_DIR}/FIREFOX_REPO_PREFERENCE_NAME /etc/apt/preferences.d/mozilla
 
     echo -e "${GREEN}...OK${NC}";echo
 }
